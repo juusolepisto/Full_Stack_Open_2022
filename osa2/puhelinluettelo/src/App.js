@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/numbers'
 
-const Persons = ({persons, filter}) => {
+const Person = ({person, removeName}) => {
   return (
-    <ul>
-      {persons
-      .filter(person => {
-        if (!filter) return true;
-        if (person.name.includes(filter)) return true;
-        return false;
-      })
-      .map(person =>
-        <li key={person.name}>{person.name} {person.number}</li>  
-      )}
-    </ul>
+    <li>
+      {person.name} {person.number}
+      <button onClick={removeName}>delete</button>
+    </li>
   )}
 
   const Filter = ({filter, handleFilterChange}) => {
@@ -60,12 +53,10 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
 
   const hook = () => {
-    console.log('effect')
-    axios
-    .get('http://localhost:3001/persons')
-    .then(response => {
-      console.log('promise fulfilled')
-      setPersons(response.data)
+    personService
+    .getAll()
+    .then(initialPersons => {
+      setPersons(initialPersons)
     })
   }
 
@@ -76,14 +67,29 @@ const App = () => {
     if (checkExistance() === false){
       const nameObject = {
         name: newName,
-        number: newNumber
+        number: newNumber,
       }
-  
-      setPersons(persons.concat(nameObject))
-      setNewName('')
-      setNewNumber('')
+      
+      personService
+        .create(nameObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
     }
   }
+
+  const removeName = (id) => {
+    const person = persons.find(p => p.id === id)
+    console.log(person.id)
+    if (window.confirm(`Do you want to delete ${person.name}?`)) {
+      personService.remove(person.id)
+      window.location.reload()
+      }
+  }
+
+  // HandleChanges...
 
   const handleFilterChange = (event) => {
     console.log(event.target.value)
@@ -99,10 +105,17 @@ const App = () => {
     setNewNumber(event.target.value)
   }
 
-  const checkExistance = () => {
-    const exists = persons.some(person => person.name.includes(newName))
-    console.log(exists)
-    return (exists ? alert(`${newName} is already added to phonebook`) : false)
+  const checkExistance = (id) => {
+    const person = persons.some(person => person.name.includes(newName))
+    const changedPerson = { ...person, number: newNumber}
+
+    if (person === true){
+      personService
+        .update(id, changedPerson)
+        .then(returnedPerson => {
+          setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
+        })
+    }
   }
 
   return (
@@ -114,7 +127,21 @@ const App = () => {
       newName={newName} handleNameChange={handleNameChange} 
       newNumber={newNumber} handleNumberChange={handleNumberChange}/>
       <h3>Numbers</h3>
-      <Persons persons={persons} filter={filter}/>
+      <ul>
+        {persons
+        .filter(person => {
+          if (!filter) return true;
+          if (person.name.includes(filter)) return true;
+          return false;
+        })
+        .map(person => 
+          <Person 
+            key={person.id}
+            person={person}
+            removeName={() => removeName(person.id)}
+          />  
+        )}
+      </ul>
     </div>
   )
 }
