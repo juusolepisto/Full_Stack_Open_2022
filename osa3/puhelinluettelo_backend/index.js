@@ -1,4 +1,4 @@
-const { response } = require('express')
+const { response, request } = require('express')
 const express = require('express')
 const app = express()
 
@@ -26,6 +26,15 @@ let notes = [
         number: "39-23-6423122"
     }
 ]
+
+app.get('/info', (request, response) => {
+    const date = new Date()
+    const currentDate = date.toString()
+    response.send(`<p>
+    Phonebook has info from ${notes.length} people <br> ${currentDate}</p>`
+    )
+
+})
 
 app.get('/api/persons', (request, response) => {
     response.json(notes)
