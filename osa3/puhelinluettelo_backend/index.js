@@ -66,6 +66,19 @@ app.delete('/api/persons/:id', (request,response) => {
 
 app.post('/api/persons', (request,response) => {
     const body = request.body
+    const existingName = notes.find(note => note.name === body.name)
+
+    if (!body.name || !body.number) {
+        return response.status(404).json({
+            error: 'nimi tai numero puuttuu'
+        })
+    }
+    if (existingName) {
+        console.log('exists')
+        return response.status(404).json({
+            error: 'nimen pitää olla uniikki'
+        })
+    }
 
     const note = {
         id: generateId(),
