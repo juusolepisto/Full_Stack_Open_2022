@@ -88,6 +88,8 @@ app.post('/api/persons', (request,response) => {
     }
     
     notes = notes.concat(note)
+    
+    console.log(JSON.stringify(note))
 
     response.json(note)
 })
