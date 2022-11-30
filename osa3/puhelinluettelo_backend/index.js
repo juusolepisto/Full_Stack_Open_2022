@@ -1,8 +1,10 @@
 const { response, request } = require('express')
 const express = require('express')
+var morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 
 let notes = [
     {
@@ -74,7 +76,6 @@ app.post('/api/persons', (request,response) => {
         })
     }
     if (existingName) {
-        console.log('exists')
         return response.status(404).json({
             error: 'nimen pitää olla uniikki'
         })
